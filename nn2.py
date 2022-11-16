@@ -35,10 +35,10 @@ def load_data():
 
 # data visualization
 def visualize_data(img_array, label_array):
-    fig, ax = plt.subplots(nrows=8, ncols=8, sharex=True, sharey=True)
+    fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True, sharey=True)
     ax = ax.flatten()
-    for i in range(64):
-        img = img_array[label_array==4][i].reshape(28, 28)
+    for i in range(1):
+        img = img_array[label_array==8][i].reshape(28, 28)
         ax[i].imshow(img, cmap='Greys', interpolation='nearest')
     plt.show()
 
@@ -67,6 +67,10 @@ def sigmoid(z):
     return (1/(1+np.exp(-z)))
     #return expit(z)
 
+def sigmoid_gradient(z):
+    s = sigmoid(z)
+    return s * (1 - s)
+
 def visualize_sigmoid():
     x = np.arange(-10,10,0.1)
     y = sigmoid(x)
@@ -76,4 +80,21 @@ def visualize_sigmoid():
 
 #visualize_sigmoid()
 
+def calc_cost(y_enc, output):
+    t1 = -y_enc * np.log(output)
+    t2 = (1 - y_enc) * np.log(1 - output)
+    cost = np.sum(t1 - t2)
+    return cost
 
+def add_bias_unit(x, where):
+    # where us just row or column
+
+    if where == 'column':
+        x_new = np.ones((x.shape[0], x.shape[1] + 1))
+        x_new[:,1:] = x
+    elif where == 'row':
+        x_new = np.ones((x.shape[0] + 1, x.shape[1]))
+        x_new[1:,:] = x
+    return x_new
+
+    
