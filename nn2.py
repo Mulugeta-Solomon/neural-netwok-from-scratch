@@ -148,3 +148,45 @@ def calc_gradient(a1, a2, a3, a4, z2, z3, z4, y_enc, w1, w2, w3):
     grad3 = delta4.dot(a3.T)
 
     return grad1, grad2, grad3
+
+def run_model(x, y, x_t, y_t):
+    x_copy, y_copy = x.copy(), y.copy()
+    y_enc = enc_one_hot(y)
+    epoch = 50
+    batch = 50
+
+    w1, w2, w3 = init_weights(784, 75, 10)
+
+    alpha = 0.001
+    eta = 0.001
+    dec = 0.00001
+    delta_w1_prev = np.zeros(w1.shape)
+    delta_w2_prev = np.zeros(w2.shape)
+    delta_w3_prev = np.zeros(w3.shape)
+
+    for i in range(epoch):
+        total_cost = []
+        shuffle = np.random.permutation(y_copy.shape[0])
+        x_copy, y_enc = x_copy[shuffle], y_enc[:, shuffle]
+        eta /= (1 + dec * i)
+
+        mini = np.array.split(range(y_copy[0], batch))
+
+        for step in mini:
+            a1, z2, a2, z3, a3, z4, a4 = feed_forward(x_copy[step], w1, w2,w3)
+            cost = calc_cost(y_enc[:,step], a4)
+
+            total_cost.append(cost)
+
+            #back propagate
+            grad1, grad2, grad3 = calc_gradient(a1, a2, a3, a4, z2, z3, z4, y_enc[:,step], w1, w2,w3)
+            delta_w1, delta_w2, delta_w3 = eta * grad1, eta * grad2, eta * grad3
+
+            w1 -= delta_w1 + alpha * delta_w1_prev
+            w2 -= delta_w2 + alpha * delta_w2_prev
+            w3 -= delta_w3 + alpha * delta_w3_prev
+
+            delta_w1_prev, delta_w2_prev, delta_w3_prev = delta_w1, delta_w2, delta_w3_prev
+
+        print('epoch #', i)
+    y_pred = predict(x_t,)
