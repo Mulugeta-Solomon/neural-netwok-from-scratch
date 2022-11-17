@@ -189,4 +189,4 @@ def run_model(x, y, x_t, y_t):
             delta_w1_prev, delta_w2_prev, delta_w3_prev = delta_w1, delta_w2, delta_w3_prev
 
         print('epoch #', i)
-    y_pred = predict(x_t,)
+    y_pred = predict(x_t,w1, w2, w3)
