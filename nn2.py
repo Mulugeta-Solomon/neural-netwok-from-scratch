@@ -64,8 +64,8 @@ def enc_one_hot(y,num_labels=10):
 
 # activation function
 def sigmoid(z):
-    return (1/(1+np.exp(-z)))
-    #return expit(z)
+    #return (1/(1+np.exp(-z)))
+    return expit(z)
 
 def sigmoid_gradient(z):
     s = sigmoid(z)
@@ -86,8 +86,9 @@ def calc_cost(y_enc, output):
     cost = np.sum(t1 - t2)
     return cost
 
+#bias unit
 def add_bias_unit(x, where):
-    # where us just row or column
+    # where: is just row or column
 
     if where == 'column':
         x_new = np.ones((x.shape[0], x.shape[1] + 1))
@@ -97,4 +98,53 @@ def add_bias_unit(x, where):
         x_new[1:,:] = x
     return x_new
 
-    
+#weights for every layer in this case three
+def init_weights(n_features, n_hidden, n_output):
+    w1 = np.random.uniform(-1.0, 1.0, size=n_hidden*(n_features + 1))
+    w1 = w1.reshape(n_hidden,n_features + 1)
+    w2 = np.random.uniform(-1.0, 1.0, size=n_hidden*(n_hidden +1))
+    w2 = w2.reshape(n_hidden, n_hidden + 1)
+    w3 = np.random.uniform(-1.0, 1.0, size=n_output*(n_hidden + 1))
+    w3 = w3.reshape(n_hidden, n_output + 1)
+    return w1, w2, w3
+
+# forward propagation 
+def feed_forward(x, w1, w2, w3):
+    #add bias unit to the input
+    #column within the row is just a byte of data
+    #so we need to add a column vector of ones
+
+    a1 = add_bias_unit(x, where='column')
+    z2 = w1.dot(a1.T)
+    a2 = sigmoid(z2)
+
+    #since we have transposed we have to add the bias unit to the row
+    a2 = add_bias_unit(a2, where='row')
+    z3 = w2.dot(a2)
+    a3 = sigmoid(z3)
+    a3 = add_bias_unit(z3, where='row')
+    z4 = w3.dot(a3)
+    a4 = sigmoid(z4)
+
+    return a1, z2, a2, z3, a3, z4, a4
+
+def predict(x, w1, w2, w3):
+    a1, z2, a2, z3, a3, z4, a4 = feed_forward(x, w1, w2, w3)
+    y_predict = np.argmax(a4, axis=0)
+    return y_predict
+
+# Backprobagation 
+def calc_gradient(a1, a2, a3, a4, z2, z3, z4, y_enc, w1, w2, w3):
+    delta4 = a4 - y_enc
+    z3 = add_bias_unit(z3, where='row')
+    delta3 = w3.T.dot(delta4*sigmoid_gradient(z3))
+    delta3 = delta3[1:, :]
+    z2 = add_bias_unit(z2, where='row')
+    delta2 = w2.T.dot(delta3*sigmoid_gradient(z2))
+    delta2 = delta2[1:, :]
+
+    grad1 = delta2.dot(a1)
+    grad2 = delta3.dot(a2.T)
+    grad3 = delta4.dot(a3.T)
+
+    return grad1, grad2, grad3
