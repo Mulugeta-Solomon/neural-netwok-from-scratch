@@ -170,7 +170,7 @@ def run_model(x, y, x_t, y_t):
         x_copy, y_enc = x_copy[shuffle], y_enc[:, shuffle]
         eta /= (1 + dec * i)
 
-        mini = np.array.split(range(y_copy[0], batch))
+        mini = np.array_split(range(y_copy[0], batch))
 
         for step in mini:
             a1, z2, a2, z3, a3, z4, a4 = feed_forward(x_copy[step], w1, w2,w3)
@@ -190,3 +190,9 @@ def run_model(x, y, x_t, y_t):
 
         print('epoch #', i)
     y_pred = predict(x_t,w1, w2, w3)
+    acc = np.sum(y_t==y_pred, axis=0)/x_t.shape[0]
+    print('training accuracy:', acc*100)
+    return 1
+
+train_x, train_y, test_x, test_y = load_data()
+train = run_model(train_x, train_y, test_x, test_y)
